@@ -30,11 +30,18 @@
             font-size: 200%;
             
         }
+        #b4 {
+            font-family: Calibri;
+            position:absolute;
+            transition: .5s ease;
+            left: 205px;
+            top: 310px;
+        }
         #b1 {
             font-family: Calibri;
             position:absolute;
             transition: .5s ease;
-            left: 165px;
+            left: 175px;
             top: 350px;
         }
         #b2 {
@@ -55,7 +62,7 @@
             font-family: Calibri;
         }
         #poem1{
-            left:145px; 
+            left:125px; 
             top: 240px;
             position:fixed;
         }
@@ -63,7 +70,7 @@
             margin-left:10px; 
             margin-right:10px;
             margin-top: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 30px;
             width:600px;
             height: 580px;
             background-color:#ebebe0; /*just to display the example*/
