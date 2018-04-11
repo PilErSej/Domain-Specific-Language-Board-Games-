@@ -1,0 +1,5 @@
+# ======== 5 in a row/Gomoku =========
+playermove : place
+grid : set (15,15)
+win : P if cohesive (P,5)
+restrict : replace false
