@@ -1,0 +1,16 @@
+# ====== Halma ======= #
+grid : set (15,15)
+var areaListX : [A1-E1;A2-E2;A3-D3;A4-C4;A5-B5]
+var areaListO : [K15-O15;K14-O14;L13-O13;M12-O12;N11-O11]
+grid : mark (X, areaListX)
+grid : mark (O, areaListO)
+grid : limit (X, areaListO)
+grid : limit (O, areaListX)
+playermove : move
+win : X if fill (X,areaListO)
+win : O if fill (O,areaListX)
+restrict : replace false
+restrict : zigzag false
+restrict : step 1
+restrict : skip 1
+turn : same if skip 1
