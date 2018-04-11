@@ -1,0 +1,10 @@
+<Import Project="FsLexYacc.targets" />
+<Compile Include="absyn.fs" />
+ <Compile Include="FunParser.fs" />
+ <Compile Include="FunLexer.fs" />
+<FsYacc Include="FunParser.fsy">
+  <OtherFlags>--module Parser</OtherFlags>
+</FsYacc>
+<FsLex Include="FunLexer.fsl">
+  <OtherFlags>--unicode</OtherFlags>
+</FsLex>
