@@ -1,0 +1,140 @@
+%{
+open AbSyn
+%}
+
+%start start
+
+
+// ========= GENERAL ==========
+
+%token DEC
+%token DIV
+%token ADIV
+%token BLANK
+%token LPAR
+%token RPAR
+%token <bool> BOOL
+
+// ==== DECLARATIONS NAMES ====
+
+
+%token GRID
+%token PLAYERMOVE
+%token WIN
+%token RESTRICT
+%token TURN
+
+// ====== PLAYERMOVE OPTIONS ======
+
+//%token <string> MOVE
+//%token <string> PLACE
+%token <string> MOVETYPE
+
+// ====== STATES =======
+
+%token <string> COHESIVE
+%token <string> FILL
+
+// ======= GRID ===========
+
+%token SET
+%token SLEEP
+%token MARK
+%token LIMIT
+
+// ======= ACTIONS =======
+
+%token STEP
+%token SKIP
+%token ZIGZAG
+%token REPLACE
+// === VALUES ===
+
+%token <int> NUM
+%token <string> POS
+
+// ======= PLAYER ========
+
+%token <char> PLAYER
+// ===== GAME PIECE SPECIFICATION =====
+
+%token <string> SAME
+%token <string> ANY
+
+//===== CONDITION =====
+
+%token <String> COND
+// ===== VARIABLES AND TYPES =======
+
+%token VARDEC
+%token <string> NAMEVARIABLE
+%token <string list> SEQAREA
+
+// ====== TURN =========
+%token <string> PASS
+// ========= MISC =========
+
+%token EOF
+
+
+// ====== START ======
+%type < AbSyn.Rules> start
+//%type < AbSyn.MoveType> MoveType
+//%type < AbSyn.BuildInBoardFun> BuildInBoardFun
+%%
+// These are the rules of the grammar along with the F# code of the 
+// actions executed as rules are reduced.  
+
+start: Prog EOF { $1 }
+
+Prog:
+
+// ================ GAME RULES =================
+	
+	| PLAYERMOVE DEC MOVETYPE 	 									{PlayerMove ($3)}
+	| GRID DEC BuildInBoardFun										{Grid ($3)} 
+	| VARDEC VariableName DEC Variable 								{VarDec ($2,$4)}
+	| WIN DEC PLAYER Condition BuildInStatesFun						{Win ($3,$4,$5)}
+	| RESTRICT DEC BuildInActionFun									{Restrict ($3)}
+	| TURN DEC PieceSpec Condition BuildInTurn 			 			{Turn ($3,$5)}
+	| PlayerAction													{GamePlay ($1)}
+
+BuildInTurn:
+    | BuildInActionFun												{TurnAction ($1)}
+    | BuildInStatesFun												{TurnStates ($1)}
+
+
+BuildInBoardFun:
+	| SET LPAR NUM DIV NUM RPAR										{Set ($3,$5)}
+	| MARK LPAR PLAYER DIV VariableName RPAR						{Mark ($3,$5)}
+	| SLEEP LPAR PLAYER DIV VariableName RPAR						{Sleep ($3,$5)}
+	| LIMIT LPAR PLAYER DIV VariableName RPAR 						{Limit ($3,$5)}
+
+BuildInStatesFun:
+	| COHESIVE LPAR PLAYER DIV NUM RPAR								{Cohesive ($3,$5)}	
+	| FILL LPAR PLAYER DIV VariableName RPAR						{Fill ($3,$5)}	
+	
+BuildInActionFun:
+	| REPLACE BOOL													{Replace ($2)}
+	| ZIGZAG BOOL													{ZigZag ($2)}
+	| STEP NUM														{Step ($2)}
+	| SKIP NUM														{Skip ($2)}
+
+VariableName:
+	| NAMEVARIABLE													{Name ($1)}
+
+Variable:
+	| SEQAREA														{AreaSeq ($1)}
+
+
+Condition:
+	| COND															{If ($1)}
+
+PlayerAction:
+	| POS															{PlacePiece ($1)} 
+	| POS POS														{MovePiece ($1,$2)} 
+	| PASS															{Pass ($1)}
+
+PieceSpec:
+	| ANY															{Any ($1)}
+	| SAME  														{Same ($1)}
