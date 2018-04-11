@@ -1,0 +1,6 @@
+# ======= TIC-TAC-TOE ========
+playermove : place
+grid : set (3,3)
+win : X if cohesive (X,3)
+win : O if cohesive (O,3)
+restrict : replace false
