@@ -1,0 +1,138 @@
+{
+module FunLexer
+open System
+open AbSyn
+open Microsoft.FSharp.Text.Lexing
+open Microsoft.FSharp.Text.Parsing
+open System.Text;;
+let lexeme = LexBuffer<_>.LexemeString
+let newline (lexbuf: LexBuffer<_>) = 
+  lexbuf.StartPos <- lexbuf.StartPos.NextLine
+}
+
+// Regular expressions
+ 
+let whitespace = [' ' '\t' ]
+let newline = ('\n' | '\r' '\n')
+let declaration = [':']
+let leftpar = ['(']
+let rightpar = [')']
+let pairdiv = [',']
+let submit = ['!']
+let areadiv = ['-']
+
+let player = ('X' | 'O')
+
+let num = (['2']['0'-'5']) | (['1']['0'-'9']) | (['1'-'9'])
+let position = (['A'-'Z']['1'-'9']) 
+                | (['A'-'Z']['1'-'9'])
+                | (((['A'-'Z']['1']['0'-'9'])
+                |(['A'-'Z']['2']['0'-'5'])))
+let blank = '_'
+let directions = ('_' | 'H' | 'V' | 'D')
+let variable = (['a'-'z']* | ['A'-'Z']*)+['0'-'9']*
+let seqarea = ['[']((['A'-'Z']['1'-'9']) 
+              |(['A'-'Z']['1'-'9'])
+              |(((['A'-'Z']['1']['0'-'9'])
+              |(['A'-'Z']['2']['0'-'5']))))
+              ['-']
+              ((['A'-'Z']['1'-'9']) 
+              |(['A'-'Z']['1'-'9'])
+              | (((['A'-'Z']['1']['0'-'9'])
+              |(['A'-'Z']['2']['0'-'5']))))
+              +
+              
+              ([';']
+              ((['A'-'Z']['1'-'9']) 
+              |(['A'-'Z']['1'-'9'])
+              |(((['A'-'Z']['1']['0'-'9'])
+              |(['A'-'Z']['2']['0'-'5']))))
+              ['-']
+              ((['A'-'Z']['1'-'9']) 
+              |(['A'-'Z']['1'-'9'])
+              | (((['A'-'Z']['1']['0'-'9'])
+              |(['A'-'Z']['2']['0'-'5'])))))*
+              [']']
+
+// Tokens
+rule token = parse
+
+// ========= GENERAL ==========
+
+| whitespace	        {token lexbuf}
+| newline	            {newline lexbuf; token lexbuf}
+| declaration         {FunParser.DEC}
+| pairdiv             {FunParser.DIV}
+| areadiv             {FunParser.ADIV}
+| blank               {FunParser.BLANK}
+| leftpar             {FunParser.LPAR}
+| rightpar            {FunParser.RPAR}
+| "true"              {FunParser.BOOL (System.Boolean.Parse(lexeme lexbuf))}
+| "false"             {FunParser.BOOL (System.Boolean.Parse(lexeme lexbuf))}
+
+// ==== RULES  ====
+
+| "grid"              {FunParser.GRID}
+| "playermove"        {FunParser.PLAYERMOVE}
+| "win"               {FunParser.WIN}
+| "restrict"          {FunParser.RESTRICT}
+| "turn"              {FunParser.TURN}
+
+// ====== PLAYERMOVE OPTIONS ======
+
+| "move"              {FunParser.MOVETYPE  (lexeme lexbuf)}
+| "place"             {FunParser.MOVETYPE (lexeme lexbuf)}
+
+// ====== STATES =======
+
+| "cohesive"          {FunParser.COHESIVE (lexeme lexbuf)}
+| "fill"              {FunParser.FILL (lexeme lexbuf)}
+
+// ======= GRID ===========
+
+| "set"               {FunParser.SET} 
+| "sleep"             {FunParser.SLEEP}
+| "mark"              {FunParser.MARK}
+| "limit"             {FunParser.LIMIT}
+
+// ======= ACTIONS =======
+
+| "step"              {FunParser.STEP}
+| "skip"              {FunParser.SKIP}
+| "zigzag"            {FunParser.ZIGZAG}
+| "replace"           {FunParser.REPLACE}
+
+// ======== PLAYERACTION =====
+
+| "pass"              {FunParser.PASS (lexeme lexbuf)}
+
+// === VALUES ===
+
+| num                 {FunParser.NUM (int (lexeme lexbuf))} 
+| position            {FunParser.POS (lexeme lexbuf)}
+// ======= PLAYER ========
+
+| player              {FunParser.PLAYER (char (lexeme lexbuf))}
+
+// ===== GAME PIECE SPECIFICATION =====
+
+| "same"              {FunParser.SAME (lexeme lexbuf)}
+| "any"               {FunParser.ANY (lexeme lexbuf)}
+
+
+//===== CONDITION =====
+
+| "if"              {FunParser.COND (lexeme lexbuf)}
+// ===== VARIABLES AND TYPES =======
+
+| "var"             {FunParser.VARDEC}
+| variable          {FunParser.NAMEVARIABLE (lexeme lexbuf)}
+| seqarea           { let seqSplit = (lexeme lexbuf).Split('[',']',';',' ')
+                      let mutable vallist = []
+                      for i in 1..seqSplit.Length-2 do
+                          vallist <- List.concat [[seqSplit.[i]];vallist]
+                      FunParser.SEQAREA (vallist)}
+      
+// ========= MISC =========
+| _    		          {failwith ("ParseError" + LexBuffer<_>.LexemeString lexbuf)}
+| eof   	          {FunParser.EOF }
